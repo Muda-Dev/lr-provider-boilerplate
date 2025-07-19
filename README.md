@@ -1,261 +1,290 @@
-# Liquidity Rail Provider Boilerplate
+# MUDA Liquidity Rail Provider Boilerplate
 
-A simple Node.js TypeScript boilerplate for implementing Liquidity Rail provider endpoints.
+A complete Node.js TypeScript implementation of the **MUDA Liquidity Rail Provider Specification 1.0.1**.
 
-## Features
+## Overview
 
-- ✅ All required provider endpoints
-- ✅ Simple authentication
-- ✅ Mock responses
-- ✅ Webhook integration with MUDA authentication
-- ✅ TypeScript support
-- ✅ Minimal dependencies
+This boilerplate provides a complete implementation of the MUDA Liquidity Rail Provider API, enabling external service providers to integrate with the MUDA platform for crypto-to-fiat and fiat-to-crypto transactions.
+
+## Specification Compliance
+
+This implementation follows the **MUDA Liquidity Rail Provider Specification 1.0.1** which defines:
+
+- Standardized API endpoints for quote generation and transaction management
+- Comprehensive transaction tracking with both crypto and fiat sides
+- Webhook integration for real-time status updates
+- Authentication and security requirements
+- Error handling and response formats
 
 ## Quick Start
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd liquidity-rail-provider-boilerplate
-   ```
+### Prerequisites
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+- Node.js 18+ 
+- TypeScript 5+
+- npm or yarn
 
-3. **Set up environment**
-   ```bash
-   cp env.example .env
-   # Edit .env with your configuration
-   ```
+### Installation
 
-4. **Run in development**
-   ```bash
-   npm run dev
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/Muda-Dev/lr-provider-boilerplate.git
+cd lr-provider-boilerplate
 
-5. **Build for production**
-   ```bash
-   npm run build
-   npm start
-   ```
+# Install dependencies
+npm install
 
-## Provider Endpoints
+# Copy environment file
+cp env.example .env
 
-This boilerplate implements all required Liquidity Rail provider endpoints:
-
-### Quote Endpoints
-- `POST /api/generate-lr-quote` - Generate transaction quotes
-- `POST /api/confirm-lr-quote` - Confirm quotes
-- `POST /api/refresh-lr-quote` - Refresh quotes with updated rates
-
-### Transaction Endpoints
-- `POST /api/get-lr-transaction` - Get specific transaction details
-- `POST /api/get-lr-transactions` - Get all transactions with filtering
-
-## Webhook Integration
-
-The boilerplate includes webhook functionality with automatic MUDA authentication. The webhook service will:
-
-1. **Authenticate with MUDA** using your credentials
-2. **Get JWT access token** from MUDA's OAuth endpoint
-3. **Include Bearer token** in all webhook requests
-4. **Auto-refresh tokens** when they expire
-
-### Import the Webhook Service
-
-```typescript
-import { WebhookService } from './src/helpers/webhooks';
+# Start development server
+npm run dev
 ```
 
-### Send Crypto Webhooks
+### Environment Configuration
 
-```typescript
-// Notify when crypto is received
-await WebhookService.notifyCryptoReceived(
-  'your-provider-id',
-  'quote-id-123',
-  '100.00',
-  'BSC',
-  '0x1234567890abcdef...',
-  '0xfromaddress...',
-  '0xtoaddress...',
-  'USDC',
-  '0.0001',
-  'USDC',
-  'memo123',
-  '0xcontractaddress...'
-);
+Create a `.env` file with your provider configuration:
 
-// Or send custom crypto webhook
-await WebhookService.sendCryptoWebhook(
-  'your-provider-id',
-  'quote-id-123',
-  'crypto_received',
-  {
-    amount: '100.00',
-    chain: 'BSC',
-    hash: '0x1234567890abcdef...',
-    from_address: '0xfromaddress...',
-    to_address: '0xtoaddress...',
-    asset_code: 'USDC',
-    fee: '0.0001',
-    currency: 'USDC'
-  }
-);
+```env
+# Server Configuration
+PORT=8001
+NODE_ENV=development
+
+# Provider Configuration
+PROVIDER_ID=your-provider-id
+PROVIDER_NAME=Your Provider Name
+API_KEY=your-api-key
+API_SECRET=your-api-secret
+
+# Database Configuration (optional)
+DATABASE_URL=your-database-url
+
+# MUDA Platform Configuration
+MUDA_WEBHOOK_URL=https://api.muda.tech/v1/rail/accounts/events
 ```
 
-### Send Fiat Webhooks
+## API Endpoints
 
-```typescript
-// Notify when fiat is sent
-await WebhookService.notifyFiatSent(
-  'your-provider-id',
-  'quote-id-123',
-  '50000.00',
-  50000,
-  'UGX',
-  'REF-987654321',
-  '0772123456',
-  'mobile_money',
-  'MTN Uganda',
-  'MTN',
-  'UG',
-  'John Doe',
-  '1000.00'
-);
+### Core Endpoints
 
-// Or send custom fiat webhook
-await WebhookService.sendFiatWebhook(
-  'your-provider-id',
-  'quote-id-123',
-  'fiat_sent',
-  'SUCCESS',
-  {
-    amount: '50000.00',
-    amount_delivered: 50000,
-    currency: 'UGX',
-    reference_id: 'REF-987654321',
-    account_number: '0772123456',
-    payment_type: 'mobile_money',
-    payment_method: 'MTN Uganda',
-    network: 'MTN',
-    country: 'UG',
-    receiver_name: 'John Doe',
-    fee: '1000.00'
-  }
-);
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/generate-lr-quote` | Generate transaction quotes |
+| `POST` | `/confirm-lr-quote` | Confirm quotes |
+| `POST` | `/refresh-lr-quote` | Refresh quotes with updated rates |
+| `POST` | `/get-lr-transaction` | Get transaction details |
+| `POST` | `/get-lr-transactions` | Get all transactions |
+| `POST` | `/auto-transaction-status` | Auto update transaction status |
+
+### Authentication
+
+All endpoints require API key authentication:
+
+```http
+X-API-Key: your-provider-api-key
+X-API-Secret: your-provider-api-secret
 ```
 
-### Send Transaction Webhooks
+## Implementation Features
 
-```typescript
-// Notify transaction status changes
-await WebhookService.sendTransactionWebhook(
-  'your-provider-id',
-  'quote-id-123',
-  'transaction_completed',
-  {
-    transaction_id: 'tx123456789',
-    status: 'COMPLETED',
-    completed_at: new Date().toISOString()
-  }
-);
-```
+### ✅ Complete API Implementation
+- All required endpoints from the specification
+- Proper request/response handling
+- TypeScript interfaces for type safety
 
-### Webhook Event Types
+### ✅ Transaction Management
+- Comprehensive transaction tracking
+- Both crypto and fiat transaction sides
+- Status updates and history
 
-- **Crypto Events**: `crypto_received`, `crypto_sent`, `crypto_failed`
-- **Fiat Events**: `fiat_sent`, `fiat_failed`, `fiat_pending`
-- **Transaction Events**: `transaction_created`, `transaction_updated`, `transaction_completed`, `transaction_failed`
+### ✅ Webhook Integration
+- Send status updates to MUDA platform
+- Handle crypto received events
+- Handle fiat sent events
+
+### ✅ Security & Validation
+- API key authentication
+- Input validation
+- Error handling
+- Rate limiting (configurable)
+
+### ✅ Development Tools
+- TypeScript for type safety
+- ESLint for code quality
+- Hot reload for development
+- Comprehensive logging
 
 ## Project Structure
 
 ```
 src/
-├── routes/
-│   └── transaction.ts    # All provider endpoints (quotes + transactions)
-├── models/
-│   └── transaction.ts    # Business logic and mock responses
 ├── helpers/
-│   ├── interfaces.ts     # TypeScript interfaces
-│   └── webhooks.ts      # Webhook service with MUDA authentication
-└── index.ts             # Application entry point
+│   └── interfaces.ts          # TypeScript interfaces
+├── models/
+│   └── transaction.ts         # Transaction business logic
+├── routes/
+│   └── transaction.ts         # API route handlers
+├── utils/
+│   └── helpers.ts            # Utility functions
+└── index.ts                  # Application entry point
 ```
 
-## Customization
+## Data Models
 
-### Business Logic
+### Quote Generation
+```typescript
+interface GenerateQuoteRequest {
+  asset_code: string;
+  amount: number;
+  currency: string;
+  service_id: string;
+}
+```
 
-Edit `src/models/transaction.ts` to implement your business logic:
+### Transaction Data
+```typescript
+interface TransactionData {
+  transaction_id: string;
+  quote_id: string;
+  provider_id: string;
+  status: string;
+  created_on: string;
+  from_currency: string;
+  to_currency: string;
+  from_amount: string;
+  to_amount: string;
+  transaction_type: string;
+  coinTransaction?: PayInTransaction;
+  fiatTransaction?: PayoutTransaction;
+}
+```
 
-- `calculateRate()` - Implement your rate calculation
-- `calculateFee()` - Implement your fee calculation
-- `generateProviderAddress()` - Implement address generation
-- `generateProviderMemo()` - Implement memo generation
+## Customization Guide
 
-### Database Integration
+### 1. Business Logic Implementation
 
-Replace the mock data storage in `src/models/transaction.ts` with your database:
+Update the `TransactionModel` class in `src/models/transaction.ts`:
 
 ```typescript
-// Replace this:
-const quotes = new Map<string, QuoteData>();
+// Implement your rate calculation logic
+private static calculateRate(currency: string, assetCode: string): number {
+  // Add your rate calculation logic here
+  return yourRateCalculation(currency, assetCode);
+}
 
-// With your database calls:
-const quote = await db.quotes.findByPk(quoteId);
+// Implement your fee calculation logic
+private static calculateFee(amount: number, rate: number): number {
+  // Add your fee calculation logic here
+  return yourFeeCalculation(amount, rate);
+}
 ```
 
-### Webhook Integration
+### 2. Database Integration
 
-Add webhook calls to your business logic in `src/models/transaction.ts`:
+Replace the mock data storage with your database:
 
 ```typescript
-import { WebhookService } from '../helpers/webhooks';
-
-// After confirming a quote
-const confirmData = await db.createTransaction(request.quote_id, request);
-
-// Send webhook notification (automatically authenticated)
-await WebhookService.sendTransactionWebhook(
-  'your-provider-id',
-  request.quote_id,
-  'transaction_created',
-  confirmData
-);
+// Replace Map storage with database calls
+const quotes = new Map<string, QuoteData>(); // Replace with database
+const transactions = new Map<string, TransactionData>(); // Replace with database
 ```
 
-## Configuration
+### 3. Authentication
 
-Copy `env.example` to `.env` and configure:
+Implement your authentication logic in `src/routes/transaction.ts`:
 
-- `PORT`: Server port (default: 3000)
-- `API_KEY`: Your provider API key
-- `API_SECRET`: Your provider API secret
-- `MUDA_AUTH_URL`: MUDA's OAuth endpoint (default: https://api.muda.tech/v1/clients/oauth/token)
-- `MUDA_SECRET_KEY`: Your MUDA secret key
-- `MUDA_API_KEY`: Your MUDA API key
-- `MUDA_WEBHOOK_URL`: MUDA's webhook endpoint
+```typescript
+const authenticate = (req: Request, res: Response, next: Function): void => {
+  const apiKey = req.headers['x-api-key'] as string;
+  const apiSecret = req.headers['x-api-secret'] as string;
+
+  // Add your authentication logic here
+  if (!isValidApiKey(apiKey, apiSecret)) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  next();
+};
+```
+
+### 4. Webhook Integration
+
+Implement webhook sending in your business logic:
+
+```typescript
+// Send webhook to MUDA platform
+await sendWebhook({
+  eventType: 'crypto_received',
+  provider_id: 'your-provider-id',
+  quote_id: quoteId,
+  data: cryptoData
+});
+```
 
 ## Testing
 
-Test the endpoints using curl or Postman:
-
+### Local Development
 ```bash
-# Generate quote
-curl -X POST http://localhost:3000/api/generate-lr-quote \
+# Start development server
+npm run dev
+
+# Test endpoints
+curl -X POST http://localhost:8001/generate-lr-quote \
   -H "Content-Type: application/json" \
-  -H "x-api-key: your_key" \
-  -H "x-api-secret: your_secret" \
+  -H "X-API-Key: your-api-key" \
+  -H "X-API-Secret: your-api-secret" \
   -d '{
-    "amount": 10,
-    "currency": "ZAR",
-    "asset_code": "USDT",
-    "service_code": "BANK_TRANSFER"
+    "asset_code": "USDC_BSC",
+    "amount": 3,
+    "currency": "UGX",
+    "service_id": "1000"
   }'
 ```
 
+### Integration Testing
+Use MUDA's sandbox environment to test your implementation before going live.
+
+## Deployment
+
+### Production Setup
+1. Set `NODE_ENV=production`
+2. Configure your database
+3. Set up proper logging
+4. Configure rate limiting
+5. Set up monitoring
+
+### Docker Deployment
+```bash
+# Build image
+docker build -t muda-lr-provider .
+
+# Run container
+docker run -p 8001:8001 muda-lr-provider
+```
+
+## Security Considerations
+
+- Use HTTPS in production
+- Implement proper rate limiting
+- Validate all input data
+- Log security events
+- Use environment variables for secrets
+- Implement proper error handling
+
 ## Support
 
-For questions about becoming a provider or implementing these endpoints, please contact the MUDA development team. 
+For questions about:
+- **Specification**: Refer to the MUDA Liquidity Rail Provider Specification 1.0.1
+- **Implementation**: Check the code comments and TypeScript interfaces
+- **Integration**: Contact the MUDA development team
+
+## License
+
+This boilerplate is provided under the MIT License. See LICENSE file for details.
+
+---
+
+**Version**: 1.0.1  
+**Specification**: MUDA Liquidity Rail Provider Specification 1.0.1  
+**Last Updated**: March 2025 
