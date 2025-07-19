@@ -74,7 +74,6 @@ MUDA_WEBHOOK_URL=https://api.muda.tech/v1/rail/accounts/events
 | `POST` | `/refresh-lr-quote` | Refresh quotes with updated rates |
 | `POST` | `/get-lr-transaction` | Get transaction details |
 | `POST` | `/get-lr-transactions` | Get all transactions |
-| `POST` | `/auto-transaction-status` | Auto update transaction status |
 
 ### Authentication
 
@@ -157,70 +156,52 @@ interface TransactionData {
   coinTransaction?: PayInTransaction;
   fiatTransaction?: PayoutTransaction;
 }
-```
 
-## Customization Guide
-
-### 1. Business Logic Implementation
-
-Update the `TransactionModel` class in `src/models/transaction.ts`:
-
-```typescript
-// Implement your rate calculation logic
-private static calculateRate(currency: string, assetCode: string): number {
-  // Add your rate calculation logic here
-  return yourRateCalculation(currency, assetCode);
+interface PayInTransaction {
+  status: string;
+  amount: string;
+  chain: string;
+  hash: string;
+  from_address: string;
+  to_address: string;
+  asset_code: string;
+  fee: string;
 }
 
-// Implement your fee calculation logic
-private static calculateFee(amount: number, rate: number): number {
-  // Add your fee calculation logic here
-  return yourFeeCalculation(amount, rate);
+interface PayoutTransaction {
+  status: string;
+  amount: string;
+  amount_delivered: number;
+  currency: string;
+  reference_id: string;
+  fee: string;
+  account: BankPayment | MobileMoneyPayment;
+}
+
+interface BankPayment {
+  type: 'bank';
+  bank_name: string;
+  bank_code: string;
+  currency: string;
+  account_number: string;
+  account_name: string;
+  swift_code: string;
+  bank_country: string;
+}
+
+interface MobileMoneyPayment {
+  type: 'mobile_money';
+  currency: string;
+  phone_number: string;
+  country_code: string;
+  network: string;
+  account_name: string;
 }
 ```
 
-### 2. Database Integration
+## Detailed Specification
 
-Replace the mock data storage with your database:
-
-```typescript
-// Replace Map storage with database calls
-const quotes = new Map<string, QuoteData>(); // Replace with database
-const transactions = new Map<string, TransactionData>(); // Replace with database
-```
-
-### 3. Authentication
-
-Implement your authentication logic in `src/routes/transaction.ts`:
-
-```typescript
-const authenticate = (req: Request, res: Response, next: Function): void => {
-  const apiKey = req.headers['x-api-key'] as string;
-  const apiSecret = req.headers['x-api-secret'] as string;
-
-  // Add your authentication logic here
-  if (!isValidApiKey(apiKey, apiSecret)) {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-
-  next();
-};
-```
-
-### 4. Webhook Integration
-
-Implement webhook sending in your business logic:
-
-```typescript
-// Send webhook to MUDA platform
-await sendWebhook({
-  eventType: 'crypto_received',
-  provider_id: 'your-provider-id',
-  quote_id: quoteId,
-  data: cryptoData
-});
-```
+For the complete API specification, data models, and implementation details, see the **[MUDA Liquidity Rail Provider Specification 1.0.1](https://bava-pay-api-documentation.vercel.app/docs/liquidity/muda-rl-specification)**.
 
 ## Testing
 

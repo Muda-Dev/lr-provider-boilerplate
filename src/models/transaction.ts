@@ -238,52 +238,6 @@ export class TransactionModel {
     }
   }
 
-  // Auto transaction status update
-  static autoTransactionStatus(request: any): ApiResponse<any> {
-    try {
-      const transaction = transactions.get(request.transaction_id);
-      
-      if (!transaction) {
-        return {
-          status: 404,
-          message: 'Transaction not found',
-          data: null as any,
-        };
-      }
-
-      // Update transaction status based on event type
-      if (request.event_type === 'crypto_received') {
-        transaction.status = 'CRYPTO_RECEIVED';
-        if (transaction.coinTransaction) {
-          transaction.coinTransaction.status = 'SUCCESS';
-          Object.assign(transaction.coinTransaction, request.data);
-        }
-      } else if (request.event_type === 'fiat_sent') {
-        transaction.status = 'SUCCESS';
-        if (transaction.fiatTransaction) {
-          transaction.fiatTransaction.status = 'SUCCESS';
-          Object.assign(transaction.fiatTransaction, request.data);
-        }
-      }
-
-      return {
-        status: 200,
-        message: 'Transaction status updated successfully',
-        data: {
-          transaction_id: request.transaction_id,
-          status: transaction.status,
-          updated_at: new Date().toISOString()
-        },
-      };
-    } catch (error) {
-      return {
-        status: 500,
-        message: 'Error updating transaction status',
-        data: null as any,
-      };
-    }
-  }
-
   // Helper methods (perform your business logic here)
   private static calculateRate(currency: string, assetCode: string): number {
     // Perform your rate calculation logic here

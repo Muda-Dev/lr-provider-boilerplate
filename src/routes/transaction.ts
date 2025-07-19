@@ -44,10 +44,4 @@ router.post('/get-lr-transactions', authenticate, (req: Request, res: Response) 
   res.status(response.status).json(response);
 });
 
-// Auto Transaction Status
-router.post('/auto-transaction-status', authenticate, (req: Request, res: Response) => {
-  const response = TransactionModel.autoTransactionStatus(req.body);
-  res.status(response.status).json(response);
-});
-
 export default router; 
