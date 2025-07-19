@@ -197,11 +197,55 @@ interface MobileMoneyPayment {
   network: string;
   account_name: string;
 }
+
+### Account Verification
+```typescript
+interface VerifyAccountRequest {
+  provider_type: string;
+  bank_code: string;
+  account_number: string;
+  currency: string;
+}
+
+interface VerifyAccountResponse {
+  status: number;
+  message: string;
+  data: {
+    accountName: string;
+    bank_code: string;
+    isValid: boolean;
+  };
+}
+```
+
+**Endpoint**: `POST /v1/rail/accounts/verifyAccount`
+
+**Request**:
+```json
+{
+  "provider_type": "bank",
+  "bank_code": "100",
+  "account_number": "10291090",
+  "currency": "NGN"
+}
+```
+
+**Response**:
+```json
+{
+  "status": 200,
+  "message": "success",
+  "data": {
+    "accountName": "JOHN DOE",
+    "bank_code": "2345",
+    "isValid": true
+  }
+}
 ```
 
 ## Detailed Specification
 
-For the complete API specification, data models, and implementation details, see the **[MUDA Liquidity Rail Provider Specification 1.0.1](https://bava-pay-api-documentation.vercel.app/docs/liquidity/muda-rl-specification)**.
+For the complete API specification, data models, and implementation details, see the **[MUDA Liquidity Rail Provider Specification 1.0.1](https://payments-doc.muda.tech/liquidity/muda-rl-specification)**.
 
 ## Testing
 

@@ -30,7 +30,7 @@ export interface MobileMoneyPayment {
 export interface ConfirmQuoteRequest {
   quote_id: string;
   reference_id: string;
-  payment_method_id: string;
+  payment_method: BankPayment | MobileMoneyPayment;
   sending_address: string;
   source: string;
 }
