@@ -3,7 +3,28 @@ export interface GenerateQuoteRequest {
   amount: number;
   currency: string;
   asset_code: string;
-  service_code: string;
+  service_id: string;
+}
+
+// Payment method interfaces
+export interface BankPayment {
+  type: 'bank';
+  bank_name: string;
+  bank_code: string;
+  currency: string;
+  account_number: string;
+  account_name: string;
+  swift_code: string;
+  bank_country: string;
+}
+
+export interface MobileMoneyPayment {
+  type: 'mobile_money';
+  currency: string;
+  phone_number: string;
+  country_code: string;
+  network: string;
+  account_name: string;
 }
 
 export interface ConfirmQuoteRequest {
@@ -12,7 +33,6 @@ export interface ConfirmQuoteRequest {
   payment_method_id: string;
   sending_address: string;
   source: string;
-  company_id: string;
 }
 
 export interface RefreshQuoteRequest {
@@ -36,30 +56,52 @@ export interface QuoteData {
   rate: number;
   fee: number;
   total_amount: number;
+  service_id: string;
   expires_at: string;
+}
+
+export interface PayInTransaction {
+  status: string;
+  amount: string;
+  chain: string;
+  hash: string;
+  from_address: string;
+  to_address: string;
+  asset_code: string;
+  fee: string;
+}
+
+export interface PayoutTransaction {
+  status: string;
+  amount: string;
+  amount_delivered: number;
+  currency: string;
+  reference_id: string;
+  fee: string;
+  account: BankPayment | MobileMoneyPayment;
 }
 
 export interface TransactionData {
   transaction_id: string;
   quote_id: string;
-  provider_id: number;
-  company_id: number;
-  send_asset: string;
-  send_amount: string;
-  receive_currency: string;
-  receive_amount: number;
-  ex_rate: string;
-  account_number: string;
-  service_id: number;
+  provider_id: string;
   status: string;
   created_on: string;
+  from_currency: string;
+  to_currency: string;
+  from_amount: string;
+  to_amount: string;
+  transaction_type: string;
+  coinTransaction?: PayInTransaction;
+  fiatTransaction?: PayoutTransaction;
 }
 
 export interface ConfirmQuoteData {
   transaction_id: string;
   status: string;
-  provider_address: string;
-  provider_memo: string;
+  pay_in_address: string;
+  memo: string;
+  send_amount: string;
 }
 
 // API Response Format

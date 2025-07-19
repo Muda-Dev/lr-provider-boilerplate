@@ -8,6 +8,8 @@ import {
   QuoteData,
   TransactionData,
   ConfirmQuoteData,
+  PayInTransaction,
+  PayoutTransaction,
   ApiResponse
 } from '../helpers/interfaces';
 
@@ -24,6 +26,7 @@ export class TransactionModel {
       const fee = this.calculateFee(request.amount, rate);
       const totalAmount = request.amount * rate + fee;
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5 minutes
+      const service_id = '1000';
 
       const quoteData: QuoteData = {
         quote_id: quoteId,
@@ -31,6 +34,7 @@ export class TransactionModel {
         fee,
         total_amount: totalAmount,
         expires_at: expiresAt,
+        service_id: service_id,
       };
 
       quotes.set(quoteId, quoteData);
@@ -62,31 +66,55 @@ export class TransactionModel {
       }
 
       const transactionId = `tx${uuidv4().replace(/-/g, '')}`;
-      const providerAddress = this.generateProviderAddress();
-      const providerMemo = this.generateProviderMemo();
+      const payInAddress = this.generateProviderAddress();
+      const memo = this.generateProviderMemo();
 
       const confirmData: ConfirmQuoteData = {
         transaction_id: transactionId,
         status: 'PENDING',
-        provider_address: providerAddress,
-        provider_memo: providerMemo,
+        pay_in_address: payInAddress,
+        memo: memo,
+        send_amount: '10',
       };
 
-      // Store transaction
+      // Store transaction with both pay-in and payout data
       const transactionData: TransactionData = {
         transaction_id: transactionId,
         quote_id: request.quote_id,
-        provider_id: parseInt(request.company_id),
-        company_id: parseInt(request.company_id),
-        send_asset: 'CUSD',
-        send_amount: '10',
-        receive_currency: 'UGX',
-        receive_amount: 35576,
-        ex_rate: '3557.6205',
-        account_number: '+256774343545',
-        service_id: 1000,
+        provider_id: 'your-provider-id',
         status: 'PENDING',
         created_on: new Date().toISOString(),
+        from_currency: 'USDC',
+        to_currency: 'UGX',
+        from_amount: '10',
+        to_amount: '50000',
+        transaction_type: 'offramp',
+        coinTransaction: {
+          status: 'PENDING',
+          amount: '100.00',
+          chain: 'BSC',
+          hash: '0x1234567890abcdef...',
+          from_address: '0xfromaddress...',
+          to_address: payInAddress,
+          asset_code: 'USDC',
+          fee: '0.0001',
+        },
+        fiatTransaction: {
+          status: 'SUCCESS',
+          amount: '50000.00',
+          amount_delivered: 50000,
+          currency: 'UGX',
+          reference_id: 'REF-987654321',
+          fee: '1000.00',
+          account: {
+            type: 'mobile_money',
+            currency: 'UGX',
+            phone_number: '0772123456',
+            country_code: 'UG',
+            network: 'MTN',
+            account_name: 'John Doe',
+          }
+        }
       };
 
       transactions.set(transactionId, transactionData);
@@ -154,7 +182,7 @@ export class TransactionModel {
     }
   }
 
-  // Get details of a specific transaction
+  // Get details of a specific transaction with both pay-in and payout data
   static getTransaction(request: GetTransactionRequest): ApiResponse<TransactionData> {
     try {
       const transaction = transactions.get(request.transaction_id);
@@ -185,7 +213,7 @@ export class TransactionModel {
   static getTransactions(request: GetTransactionsRequest): ApiResponse<TransactionData[]> {
     try {
       let filteredTransactions = Array.from(transactions.values())
-        .filter(t => t.provider_id === request.provider_id);
+        .filter(t => t.provider_id === request.provider_id.toString());
 
       if (request.status) {
         filteredTransactions = filteredTransactions.filter(t => t.status === request.status);
@@ -205,6 +233,52 @@ export class TransactionModel {
       return {
         status: 500,
         message: 'Error getting transactions',
+        data: null as any,
+      };
+    }
+  }
+
+  // Auto transaction status update
+  static autoTransactionStatus(request: any): ApiResponse<any> {
+    try {
+      const transaction = transactions.get(request.transaction_id);
+      
+      if (!transaction) {
+        return {
+          status: 404,
+          message: 'Transaction not found',
+          data: null as any,
+        };
+      }
+
+      // Update transaction status based on event type
+      if (request.event_type === 'crypto_received') {
+        transaction.status = 'CRYPTO_RECEIVED';
+        if (transaction.coinTransaction) {
+          transaction.coinTransaction.status = 'SUCCESS';
+          Object.assign(transaction.coinTransaction, request.data);
+        }
+      } else if (request.event_type === 'fiat_sent') {
+        transaction.status = 'SUCCESS';
+        if (transaction.fiatTransaction) {
+          transaction.fiatTransaction.status = 'SUCCESS';
+          Object.assign(transaction.fiatTransaction, request.data);
+        }
+      }
+
+      return {
+        status: 200,
+        message: 'Transaction status updated successfully',
+        data: {
+          transaction_id: request.transaction_id,
+          status: transaction.status,
+          updated_at: new Date().toISOString()
+        },
+      };
+    } catch (error) {
+      return {
+        status: 500,
+        message: 'Error updating transaction status',
         data: null as any,
       };
     }
